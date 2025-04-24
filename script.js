@@ -323,39 +323,48 @@ async function detectTextRegions(imgElement) {
     };
 }
 
-        // Интеллектуальная обрезка (комбинация OpenCV и Tesseract)
-        async function intelligentCrop(imgElement) {
-            const tableRegion = detectTableRegion(imgElement);
+// Интеллектуальная обрезка (комбинация OpenCV и Tesseract)
+async function intelligentCrop(imgElement) {
+    const tableRegion = detectTableRegion(imgElement);
 
-            const tempCanvas = document.createElement("canvas");
-            tempCanvas.width = tableRegion.cropWidth;
-            tempCanvas.height = tableRegion.cropHeight;
-            const tempCtx = tempCanvas.getContext("2d");
-            tempCtx.drawImage(imgElement, tableRegion.cropX, tableRegion.cropY, tableRegion.cropWidth, tableRegion.cropHeight, 0, 0, tableRegion.cropWidth, tableRegion.cropHeight);
+    // Фиксированная обрезка верхней части (примерно 10% высоты)
+    const topCrop = Math.floor(imgElement.height * 0.1);
+    const adjustedRegion = {
+        cropX: tableRegion.cropX,
+        cropY: tableRegion.cropY + topCrop,
+        cropWidth: tableRegion.cropWidth,
+        cropHeight: tableRegion.cropHeight - topCrop
+    };
 
-            const textRegion = await detectTextRegions(tempCanvas);
+    const tempCanvas = document.createElement("canvas");
+    tempCanvas.width = adjustedRegion.cropWidth;
+    tempCanvas.height = adjustedRegion.cropHeight;
+    const tempCtx = tempCanvas.getContext("2d");
+    tempCtx.drawImage(imgElement, adjustedRegion.cropX, adjustedRegion.cropY, adjustedRegion.cropWidth, adjustedRegion.cropHeight, 0, 0, adjustedRegion.cropWidth, adjustedRegion.cropHeight);
 
-            let finalCrop = {
-                cropX: tableRegion.cropX + textRegion.cropX,
-                cropY: tableRegion.cropY + textRegion.cropY,
-                cropWidth: textRegion.cropWidth,
-                cropHeight: textRegion.cropHeight
-            };
+    const textRegion = await detectTextRegions(tempCanvas);
 
-            const minWidth = imgElement.width * 0.2;
-            const minHeight = imgElement.height * 0.2;
-            if (finalCrop.cropWidth < minWidth || finalCrop.cropHeight < minHeight) {
-                logDebug("Область обрезки слишком мала. Используется адаптивный запасной вариант.");
-                finalCrop = {
-                    cropX: Math.floor(imgElement.width * 0.65),
-                    cropY: Math.floor(imgElement.height * 0.05),
-                    cropWidth: imgElement.width - Math.floor(imgElement.width * 0.65) - 50,
-                    cropHeight: imgElement.height - Math.floor(imgElement.height * 0.1)
-                };
-            }
+    let finalCrop = {
+        cropX: adjustedRegion.cropX + textRegion.cropX,
+        cropY: adjustedRegion.cropY + textRegion.cropY,
+        cropWidth: textRegion.cropWidth,
+        cropHeight: textRegion.cropHeight
+    };
 
-            return finalCrop;
-        }
+    const minWidth = imgElement.width * 0.2;
+    const minHeight = imgElement.height * 0.2;
+    if (finalCrop.cropWidth < minWidth || finalCrop.cropHeight < minHeight) {
+        logDebug("Область обрезки слишком мала. Используется адаптивный запасной вариант.");
+        finalCrop = {
+            cropX: Math.floor(imgElement.width * 0.65),
+            cropY: Math.floor(imgElement.height * 0.15), // Увеличиваем отступ сверху
+            cropWidth: imgElement.width - Math.floor(imgElement.width * 0.65) - 50,
+            cropHeight: imgElement.height - Math.floor(imgElement.height * 0.2)
+        };
+    }
+
+    return finalCrop;
+}
 
         // Обработка изображения с визуализацией шагов
         async function processImage(file, index) {
@@ -415,14 +424,6 @@ async function detectTextRegions(imgElement) {
                     invertedCanvas.height = cropHeight;
                     cv.imshow(invertedCanvas, dst);
                     currentStages.push({ name: "Инверсия", canvas: invertedCanvas });
-
-                    kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(3, 3));
-                    cv.morphologyEx(dst, dst, cv.MORPH_OPEN, kernel);
-                    const morphedCanvas = document.createElement("canvas");
-                    morphedCanvas.width = cropWidth;
-                    morphedCanvas.height = cropHeight;
-                    cv.imshow(morphedCanvas, dst);
-                    currentStages.push({ name: "Морфология", canvas: morphedCanvas });
 
                     cv.threshold(dst, dst, 150, 255, cv.THRESH_BINARY);
                     const thresholdedCanvas = document.createElement("canvas");
