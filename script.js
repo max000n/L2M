@@ -259,7 +259,7 @@ async function handleFiles(files) {
 
                 cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
                 cv.bitwise_not(dst, dst);
-                cv.adaptiveThreshold(dst, dst, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 8, 3);
+                cv.adaptiveThreshold(dst, dst, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 7, 9);
 
                 const processedCanvas = document.createElement("canvas");
                 processedCanvas.width = imgElement.width;
@@ -328,7 +328,7 @@ async function intelligentCrop(imgElement) {
     const tableRegion = detectTableRegion(imgElement);
 
     // Фиксированная обрезка верхней части (примерно 10% высоты)
-    const topCrop = Math.floor(imgElement.height * 0.1);
+    const topCrop = Math.floor(imgElement.height * 0.2);
     const adjustedRegion = {
         cropX: tableRegion.cropX,
         cropY: tableRegion.cropY + topCrop,
@@ -440,7 +440,7 @@ async function intelligentCrop(imgElement) {
                     cv.imshow(thresholdedCanvas, dst);
                     currentStages.push({ name: "Порог", canvas: thresholdedCanvas });
 
-                    const scaleFactor = 3;
+                    const scaleFactor = 4;
                     scaledDst = new cv.Mat();
                     cv.resize(dst, scaledDst, new cv.Size(cropWidth * scaleFactor, cropHeight * scaleFactor), 0, 0, cv.INTER_LINEAR);
                     const finalCanvas = document.createElement("canvas");
