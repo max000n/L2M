@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lineage 2M Сканер</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header card">
+            <h1>Lineage 2M Сканер</h1>
+            <p>Загрузите скриншоты игры для автоматического распознавания информации о боссах</p>
+        </div>
+
+        <div class="upload-section card">
+            <div class="drop-zone" id="dropZone">
+                <div class="drop-zone-icon">
+                    <svg class="icon" viewBox="0 0 24 24">
+                        <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"></path>
+                    </svg>
+                </div>
+                <div class="drop-zone-text">Перетащите изображения сюда</div>
+                <div class="drop-zone-subtext">или нажмите для выбора файлов</div>
+                <input type="file" id="fileInput" multiple accept="image/*" style="display: none;">
+            </div>
+
+<div class="progress-container" id="progressContainer" style="display: none;">
+    <div class="progress-bar" id="progressBar">
+        <div class="progress-bar-inner" id="progressBarInner" style="width: 0%"></div>
+    </div>
+    <div class="progress-text" id="progressText">Обработано: 0 из 0 (0%)</div>
+</div>
+
+            <div id="imageListContainer">
+                <div class="empty-state" id="emptyImageList">
+                    <div class="empty-state-icon">
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"></path>
+                        </svg>
+                    </div>
+                    <div class="empty-state-text">Нет загруженных изображений</div>
+                    <div class="empty-state-subtext">Загрузите скриншоты игры для начала распознавания</div>
+                </div>
+                <div class="image-list" id="imageList" style="display: none;"></div>
+            </div>
+        </div>
+
+        <div class="results-section card">
+            <div class="results-header">
+                <div class="results-title">Результаты распознавания</div>
+                <div class="results-actions">
+                    <button class="btn" onclick="copyResults()">
+                        <svg class="icon" viewBox="0 0 24 24" width="18" height="18">
+                            <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"></path>
+                        </svg>
+                        Копировать
+                    </button>
+                    <button class="btn btn-outline" onclick="toggleFullDate()">
+                        <svg class="icon" viewBox="0 0 24 24" width="18" height="18">
+                            <path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"></path>
+                        </svg>
+                        Полная дата
+                    </button>
+<!--                     <button class="btn" onclick="exportToCSV()">
+                        <svg class="icon" viewBox="0 0 24 24" width="18" height="18">
+                            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"></path>
+                        </svg>
+                        Экспорт CSV
+                    </button> -->
+                </div>
+            </div>
+
+            <div id="resultsContainer">
+                <div class="empty-state" id="emptyResults">
+                    <div class="empty-state-icon">
+                        <svg class="icon" viewBox="0 0 24 24">
+                            <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"></path>
+                        </svg>
+                    </div>
+                    <div class="empty-state-text">Нет данных о боссах</div>
+                    <div class="empty-state-subtext">Загрузите скриншоты с информацией о боссах для распознавания</div>
+                </div>
+                <div class="results-content" id="resultsContent" style="display: none;">
+                    <div class="boss-list" id="bossList"></div>
+                </div>
+            </div>
+
+            <button class="accordion" id="visualizationAccordion">
+                Визуализация обработки
+            </button>
+            <div class="panel" id="visualizationPanel">
+                <div class="panel-content">
+                    <div class="visualization-content">
+                        <canvas id="stageCanvas" class="visualization-canvas"></canvas>
+                        <div class="stage-buttons" id="stageButtons"></div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="accordion" id="debugAccordion">
+                Лог обработки
+            </button>
+            <div class="panel" id="debugPanel">
+                <div class="panel-content">
+                    <div class="debug-content" id="debugLog"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            Lineage 2M Сканер &copy; 2025 | Версия 2.0
+        </div>
+    </div>
+
+    <!-- Подключение Tesseract.js -->
+    <script src="https://unpkg.com/tesseract.js@v5.1.0/dist/tesseract.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
