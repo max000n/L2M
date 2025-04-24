@@ -259,7 +259,7 @@ async function handleFiles(files) {
 
                 cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
                 cv.bitwise_not(dst, dst);
-                cv.adaptiveThreshold(dst, dst, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 7, 3);
+                cv.adaptiveThreshold(dst, dst, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 8, 3);
 
                 const processedCanvas = document.createElement("canvas");
                 processedCanvas.width = imgElement.width;
@@ -425,14 +425,22 @@ async function intelligentCrop(imgElement) {
                     cv.imshow(invertedCanvas, dst);
                     currentStages.push({ name: "Инверсия", canvas: invertedCanvas });
 
-                    cv.threshold(dst, dst, 150, 255, cv.THRESH_BINARY);
+                    // kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(3, 3));
+                    // cv.morphologyEx(dst, dst, cv.MORPH_OPEN, kernel);
+                    // const morphedCanvas = document.createElement("canvas");
+                    // morphedCanvas.width = cropWidth;
+                    // morphedCanvas.height = cropHeight;
+                    // cv.imshow(morphedCanvas, dst);
+                    // currentStages.push({ name: "Морфология", canvas: morphedCanvas });
+
+                    cv.threshold(dst, dst, 160, 255, cv.THRESH_BINARY);
                     const thresholdedCanvas = document.createElement("canvas");
                     thresholdedCanvas.width = cropWidth;
                     thresholdedCanvas.height = cropHeight;
                     cv.imshow(thresholdedCanvas, dst);
                     currentStages.push({ name: "Порог", canvas: thresholdedCanvas });
 
-                    const scaleFactor = 2;
+                    const scaleFactor = 3;
                     scaledDst = new cv.Mat();
                     cv.resize(dst, scaledDst, new cv.Size(cropWidth * scaleFactor, cropHeight * scaleFactor), 0, 0, cv.INTER_LINEAR);
                     const finalCanvas = document.createElement("canvas");
