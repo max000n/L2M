@@ -259,7 +259,7 @@ async function handleFiles(files) {
 
                 cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
                 cv.bitwise_not(dst, dst);
-                cv.adaptiveThreshold(dst, dst, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 9, 3);
+                cv.adaptiveThreshold(dst, dst, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 7, 3);
 
                 const processedCanvas = document.createElement("canvas");
                 processedCanvas.width = imgElement.width;
